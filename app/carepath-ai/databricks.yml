@@ -1,0 +1,36 @@
+bundle:
+  name: carepath-ai
+
+variables:
+  sql_warehouse_id:
+    description: SQL Warehouse ID
+
+resources:
+  apps:
+    app:
+      name: "carepath-ai"
+      description: "CarePath AI - trusted, evidence-backed healthcare referrals"
+      source_code_path: ./
+      user_api_scopes:
+        - sql
+        - serving.serving-endpoints
+
+      # The resources which this app has access to.
+      resources:
+        - name: sql-warehouse
+          sql_warehouse:
+            id: ${var.sql_warehouse_id}
+            permission: CAN_USE
+        - name: serving-endpoint
+          serving_endpoint:
+            name: databricks-meta-llama-3-3-70b-instruct
+            permission: CAN_QUERY
+
+targets:
+  default:
+    default: true
+    workspace:
+      host: https://dbc-6bf9cc4a-0042.cloud.databricks.com
+
+    variables:
+      sql_warehouse_id: 9d552ae43bc1d228

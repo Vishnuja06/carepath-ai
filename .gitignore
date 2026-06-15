@@ -1,0 +1,18 @@
+# dependencies / build output
+**/node_modules/
+**/dist/
+**/client/dist/
+**/build/
+
+# env / local secrets
+**/.env
+**/.databricks/
+
+# test artifacts
+**/.smoke-test/
+**/test-results/
+**/playwright-report/
+
+# editor / OS
+.DS_Store
+.vscode/
