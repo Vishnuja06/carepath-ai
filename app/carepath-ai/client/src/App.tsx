@@ -1,5 +1,7 @@
 import { Activity } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@databricks/appkit-ui/react';
 import { ReferralWorkspace } from './pages/ReferralWorkspace';
+import { InsightsConsole } from './pages/InsightsConsole';
 
 export default function App() {
   return (
@@ -18,7 +20,18 @@ export default function App() {
       </header>
 
       <main className="flex-1 p-4 md:p-6">
-        <ReferralWorkspace />
+        <Tabs defaultValue="referrals" className="max-w-6xl mx-auto">
+          <TabsList className="mb-6">
+            <TabsTrigger value="referrals">Referrals</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+          </TabsList>
+          <TabsContent value="referrals">
+            <ReferralWorkspace />
+          </TabsContent>
+          <TabsContent value="insights">
+            <InsightsConsole />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

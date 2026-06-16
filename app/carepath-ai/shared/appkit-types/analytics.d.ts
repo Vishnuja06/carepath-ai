@@ -185,5 +185,54 @@ declare module "@databricks/appkit-ui/react" {
           avg_score: number;
         }>;
       };
+    care_gap: {
+        name: "care_gap";
+        parameters: {
+          /** BIGINT - use sql.bigint() */
+          min_facilities: SQLNumberMarker;
+        };
+        result: Array<{
+          /** @sqlType STRING */
+          district: string;
+          /** @sqlType STRING */
+          state: string;
+          /** @sqlType BIGINT */
+          n_facilities: number;
+          /** @sqlType BIGINT */
+          total_beds: number;
+          /** @sqlType BIGINT */
+          total_doctors: number;
+          /** @sqlType DOUBLE */
+          avg_trust: number;
+          /** @sqlType DOUBLE */
+          flagged_pct: number;
+          /** @sqlType INT */
+          n_specialties: number;
+          /** @sqlType DOUBLE */
+          need_index: number;
+          /** @sqlType BOOLEAN */
+          need_known: boolean;
+          /** @sqlType DOUBLE */
+          supply_scarcity: number;
+          /** @sqlType DOUBLE */
+          trust_deficit: number;
+          /** @sqlType DOUBLE */
+          care_gap_score: number;
+        }>;
+      };
+    data_confidence: {
+        name: "data_confidence";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType BIGINT */
+          n_facilities: number;
+          /** @sqlType DOUBLE */
+          high_pct: number;
+          /** @sqlType DOUBLE */
+          flagged_pct: number;
+          /** @sqlType DOUBLE */
+          avg_trust: number;
+        }>;
+      };
   }
 }
