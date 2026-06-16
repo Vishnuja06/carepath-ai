@@ -1,4 +1,4 @@
-import { createApp, analytics, serving, server } from '@databricks/appkit';
+import { createApp, analytics, serving, server, genie } from '@databricks/appkit';
 // The agents plugin is beta and ships from the /beta entry point.
 import { agents } from '@databricks/appkit/beta';
 import pg from 'pg';
@@ -23,6 +23,9 @@ const pool = lakebaseEnabled
     })
   : null;
 
+// AI/BI Genie is optional and env-gated so the app boots cleanly even when no
+// Genie space is wired yet. Set DATABRICKS_GENIE_SPACE_ID (and, on the client,
+// VITE_GENIE_ENABLED=true) to light up the "Live Genie" tab in Insights.
 await createApp({
   plugins: [
     analytics(),
@@ -32,6 +35,9 @@ await createApp({
     // streaming-capable serving endpoint (the llama Foundation Model API is).
     agents(),
     server(),
+    ...(process.env.DATABRICKS_GENIE_SPACE_ID
+      ? [genie({ spaces: { insights: process.env.DATABRICKS_GENIE_SPACE_ID } })]
+      : []),
   ],
   // Create the schema on startup (idempotent) and mount the Planner Workspace
   // CRUD routes on the Express app before it starts listening.

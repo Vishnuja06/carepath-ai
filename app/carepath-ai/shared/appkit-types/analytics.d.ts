@@ -5,6 +5,55 @@ import type { SQLTypeMarker, SQLStringMarker, SQLNumberMarker, SQLBooleanMarker,
 
 declare module "@databricks/appkit-ui/react" {
   interface QueryRegistry {
+    care_gap: {
+        name: "care_gap";
+        parameters: {
+          /** BIGINT - use sql.bigint() */
+          min_facilities: SQLNumberMarker;
+        };
+        result: Array<{
+          /** @sqlType STRING */
+          district: string;
+          /** @sqlType STRING */
+          state: string;
+          /** @sqlType BIGINT */
+          n_facilities: number;
+          /** @sqlType BIGINT */
+          total_beds: number;
+          /** @sqlType BIGINT */
+          total_doctors: number;
+          /** @sqlType DECIMAL(19,1) */
+          avg_trust: number;
+          /** @sqlType DECIMAL(7,1) */
+          flagged_pct: number;
+          /** @sqlType INT */
+          n_specialties: number;
+          /** @sqlType DOUBLE */
+          need_index: number;
+          /** @sqlType BOOLEAN */
+          need_known: boolean;
+          /** @sqlType DOUBLE */
+          supply_scarcity: number;
+          /** @sqlType DECIMAL(21,1) */
+          trust_deficit: number;
+          /** @sqlType DOUBLE */
+          care_gap_score: number;
+        }>;
+      };
+    data_confidence: {
+        name: "data_confidence";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType BIGINT */
+          n_facilities: number;
+          /** @sqlType DECIMAL(7,1) */
+          high_pct: number;
+          /** @sqlType DECIMAL(7,1) */
+          flagged_pct: number;
+          /** @sqlType DECIMAL(19,1) */
+          avg_trust: number;
+        }>;
+      };
     facility_detail: {
         name: "facility_detail";
         parameters: {

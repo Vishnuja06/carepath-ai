@@ -39,6 +39,13 @@ thin, stale, single-source record is flagged, not hidden.
 - **Uncertainty Engine** — communicates confidence honestly using per-facility
   data completeness and district-level health context (NFHS-5), instead of
   presenting uncertain information as fact.
+- **Coverage Insights (AI/BI)** — a population-health view that flips the app
+  from per-patient lookup to *where to prioritize*. A **Care Gap Index** ranks
+  districts by a transparent blend of NFHS-5 **need**, facility **supply
+  scarcity**, and an information-**trust deficit**, and an **"Ask the data"**
+  copilot answers natural-language questions about coverage and trust — via
+  Databricks AI/BI **Genie** when configured, or a grounded guided-analyst mode
+  otherwise. Every chart carries an honest data-confidence footer.
 - **Planner Workspace** — planners save notes, shortlists, and overrides.
 
 ## Workflow
@@ -103,7 +110,8 @@ catalog is read-only).
 
 - `sql/` — the data + logic layer (run in order against the `carepath-ai`
   workspace): `00_schema`, `01_facilities_silver`, `02_facility_trust`,
-  `03_referral_engine`.
+  `03_referral_engine`, `04_care_gap_index` (district Care Gap Index view for
+  the AI/BI Insights console).
 - `app/carepath-ai/` — the Databricks App (AppKit React + analytics + serving).
 
 ## Running & deploying
@@ -128,6 +136,13 @@ Grant it `USE CATALOG`/`USE SCHEMA`/`SELECT` on
 `USE CATALOG`/`USE SCHEMA`/`SELECT`/`EXECUTE` on `workspace.carepath_ai`
 (otherwise build-time type generation and runtime queries fail with
 `INSUFFICIENT_PERMISSIONS`).
+
+**AI/BI Insights:** the Insights tab works out of the box (it falls back to
+bundled sample data if the warehouse isn't reachable). For live numbers, run
+`sql/04_care_gap_index.sql` once in the workspace. To enable the **Live Genie**
+tab, set `DATABRICKS_GENIE_SPACE_ID` on the app (server) and
+`VITE_GENIE_ENABLED=true` for the client build; without them the copilot runs in
+grounded guided-analyst mode using the existing serving endpoint.
 
 Live app: https://carepath-ai-7474660235866912.aws.databricksapps.com
 
