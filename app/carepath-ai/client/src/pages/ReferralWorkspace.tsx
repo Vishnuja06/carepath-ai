@@ -204,6 +204,11 @@ function Results({ params }: { params: SearchParams }) {
           Within {params.radiusKm} km of {params.pincode}
           {loc ? ` · ${loc.district}, ${loc.state}` : ''} · trust weight {params.trustWeight}%
         </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          <span className="font-medium">Match</span> blends proximity and information-trust
+          (0–100). <span className="font-medium">Trust</span> scores how complete, corroborated,
+          consistent and fresh the facility's record is — not its clinical quality.
+        </p>
       </div>
 
       {pinNotFound && (
@@ -311,9 +316,11 @@ function FacilityCard({
               </div>
               <div className="flex-none text-right">
                 <Badge className={tierClasses(f.trust_tier)}>
-                  Trust {fmtScore(f.trust_score)}
+                  Trust {fmtScore(f.trust_score)}/100
                 </Badge>
-                <div className="text-xs text-muted-foreground mt-1">match {fmtScore(f.rank_score)}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Match {fmtScore(f.rank_score)}/100
+                </div>
               </div>
             </div>
 

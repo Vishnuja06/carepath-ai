@@ -11,10 +11,19 @@ WITH src AS (
   FROM databricks_virtue_foundation_dataset_dais_2026.virtue_foundation_dataset.facilities
   WHERE address_country = 'India'          -- drops the ~88 dirty/non-India rows
 ),
--- one representative district/state per pincode for the geo join
-pin AS (
-  SELECT pincode, MAX(district) AS district, MAX(statename) AS statename
+-- authoritative pincode centroids (lat/long + district), used to snap each
+-- facility to its true district BY COORDINATES rather than its own (dirty)
+-- postcode -- so the district label is consistent with the distance math.
+pin_centroid AS (
+  SELECT
+    pincode,
+    MAX(district)  AS district,
+    MAX(statename) AS statename,
+    AVG(TRY_CAST(latitude  AS DOUBLE)) AS lat,
+    AVG(TRY_CAST(longitude AS DOUBLE)) AS lon
   FROM databricks_virtue_foundation_dataset_dais_2026.virtue_foundation_dataset.india_post_pincode_directory
+  WHERE TRY_CAST(latitude  AS DOUBLE) BETWEEN 6 AND 37.5
+    AND TRY_CAST(longitude AS DOUBLE) BETWEEN 68 AND 97.5
   GROUP BY pincode
 ),
 cleaned AS (
@@ -78,12 +87,33 @@ cleaned AS (
     source_content_id,
     source_ids
   FROM src
+),
+-- snap each geo-valid facility to its nearest pincode centroid (bounding-box
+-- prune to ~±0.5 deg, then pick the closest) to get an accurate district.
+nearest AS (
+  SELECT facility_id, district, statename
+  FROM (
+    SELECT
+      c.facility_id,
+      p.district,
+      p.statename,
+      ROW_NUMBER() OVER (
+        PARTITION BY c.facility_id
+        ORDER BY POW(p.lat - c.latitude, 2) + POW(p.lon - c.longitude, 2)
+      ) AS rn
+    FROM cleaned c
+    JOIN pin_centroid p
+      ON c.latitude IS NOT NULL
+     AND p.lat BETWEEN c.latitude - 0.5 AND c.latitude + 0.5
+     AND p.lon BETWEEN c.longitude - 0.5 AND c.longitude + 0.5
+  )
+  WHERE rn = 1
 )
 SELECT
   c.*,
-  SIZE(c.specialties_clean)                          AS n_specialties,
-  (c.latitude IS NOT NULL)                           AS geo_valid,
-  COALESCE(pin.district, '')                         AS district,
-  COALESCE(NULLIF(pin.statename, ''), c.state_raw)   AS state
+  SIZE(c.specialties_clean)                                  AS n_specialties,
+  (c.latitude IS NOT NULL)                                   AS geo_valid,
+  INITCAP(COALESCE(n.district, ''))                          AS district,
+  INITCAP(COALESCE(NULLIF(n.statename, ''), c.state_raw))    AS state
 FROM cleaned c
-LEFT JOIN pin ON c.pincode = pin.pincode;
+LEFT JOIN nearest n ON c.facility_id = n.facility_id;

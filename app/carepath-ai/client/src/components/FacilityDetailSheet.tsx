@@ -35,10 +35,18 @@ const COMPONENTS = [
   { key: 'recency_score', label: 'Recency', hint: 'how recently the record was refreshed' },
 ] as const;
 
-function extractUrls(raw: string | null | undefined): string[] {
-  if (!raw) return [];
-  const matches = raw.match(/https?:\/\/[^\s",\]]+/g);
-  return matches ? Array.from(new Set(matches)) : [];
+// source_urls is a STRING column holding a JSON array literal; AppKit's analytics
+// layer auto-parses it, so at runtime this can arrive as a string OR a string[].
+function extractUrls(raw: unknown): string[] {
+  const isUrl = (u: unknown): u is string => typeof u === 'string' && /^https?:\/\//.test(u);
+  if (Array.isArray(raw)) {
+    return Array.from(new Set(raw.filter(isUrl)));
+  }
+  if (typeof raw === 'string' && raw) {
+    const matches = raw.match(/https?:\/\/[^\s",\]]+/g);
+    return matches ? Array.from(new Set(matches)) : [];
+  }
+  return [];
 }
 
 export function FacilityDetailSheet({ facilityId, district, specialty, open, onOpenChange }: Props) {
@@ -85,31 +93,40 @@ function DetailBody({
 
   if (loading) {
     return (
-      <div className="space-y-4 mt-6">
-        <Skeleton className="h-7 w-2/3" />
-        <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-40 w-full" />
-      </div>
+      <>
+        <SheetTitle className="sr-only">Facility details</SheetTitle>
+        <div className="space-y-4 mt-6">
+          <Skeleton className="h-7 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive" className="mt-6">
-        <AlertTitle>Couldn't load facility</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <>
+        <SheetTitle className="sr-only">Facility details</SheetTitle>
+        <Alert variant="destructive" className="mt-6">
+          <AlertTitle>Couldn't load facility</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </>
     );
   }
 
   const f = data?.[0];
   if (!f) {
     return (
-      <Alert className="mt-6">
-        <AlertTitle>No record found</AlertTitle>
-        <AlertDescription>This facility is no longer available.</AlertDescription>
-      </Alert>
+      <>
+        <SheetTitle className="sr-only">Facility details</SheetTitle>
+        <Alert className="mt-6">
+          <AlertTitle>No record found</AlertTitle>
+          <AlertDescription>This facility is no longer available.</AlertDescription>
+        </Alert>
+      </>
     );
   }
 
