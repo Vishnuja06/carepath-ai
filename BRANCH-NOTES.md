@@ -29,7 +29,10 @@ trust caveats.
 - Config: `app/carepath-ai/config/agents/referral/agent.md`
 - Server: `server.ts` registers `agents()` (from `@databricks/appkit/beta`).
 - HTTP surface: `POST /invocations`, `POST /responses`, `POST /api/agents/chat`.
-- **No front-end screen yet** — it's reachable only via the API.
+- Front-end: **"AI copilot" tab** in the Referral Workspace
+  (`client/src/components/AgentCopilot.tsx`) — free-text box that streams the
+  agent's answer (via `useAgentChat`), shows which tools it called, and renders
+  the disclaimer.
 
 ## Current working state (verified on Free Edition, 2026-06-16)
 
@@ -41,7 +44,7 @@ from Marketplace and `sql/00`–`03` run to build `workspace.carepath_ai`:
 |---|---|
 | Core app (ranking + trust + evidence) | ✅ works with real data (10,000 facilities) |
 | "Explain" button (serving) | ✅ works (`databricks-llama-4-maverick`) |
-| **Agent** (referral copilot) | ✅ works via API (`databricks-qwen3-next-80b-a3b-instruct`) |
+| **Agent** (referral copilot) | ✅ works in the "AI copilot" tab + API (`databricks-qwen3-next-80b-a3b-instruct`) |
 | **Shortlist** (Lakebase) | ✅ works — saves/reads from a Lakebase instance |
 
 ## ⚠️ Free-Edition-specific TEMP changes (must revisit for the real workspace)
@@ -94,8 +97,7 @@ npm run dev          # http://localhost:8000
 
 ## What's left / next steps
 
-1. **Agent UI** — biggest gap. The agent only responds to API calls; it needs a
-   chat/search panel in the React app to be demo-clickable.
+1. ✅ **Agent UI** — done. "AI copilot" tab in the Referral Workspace.
 2. **Pick the demo workspace and lock model choices.** If demoing on Free Edition,
    keep qwen3 for the agent and llama-4-maverick for Explain. If on a workspace with
    Claude, switch back.
