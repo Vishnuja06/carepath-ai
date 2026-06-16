@@ -4,7 +4,19 @@ env:
     valueFrom: sql-warehouse
   - name: DATABRICKS_SERVING_ENDPOINT_NAME
     valueFrom: serving-endpoint
-  # Lakebase endpoint, auto-injected at runtime. PGHOST/PGPORT/PGDATABASE/
-  # PGSSLMODE are injected by the platform; see appkit.plugins.json lakebase.
-  - name: LAKEBASE_ENDPOINT
-    valueFrom: postgres
+  # Lakebase (classic instance "carepath-lakebase") — native Postgres password
+  # auth via a stable role. The app connects with a plain pg.Pool (server.ts).
+  - name: PGHOST
+    value: ep-empty-brook-d8c6e5n8.database.us-east-2.cloud.databricks.com
+  - name: PGPORT
+    value: '5432'
+  - name: PGDATABASE
+    value: databricks_postgres
+  - name: PGUSER
+    value: carepath_app
+  # PGPASSWORD is sourced from a Databricks secret (scope/key: carepath-ai/
+  # pg-password), exposed as the "pg-password" app resource in databricks.yml.
+  - name: PGPASSWORD
+    valueFrom: pg-password
+  - name: PGSSLMODE
+    value: require

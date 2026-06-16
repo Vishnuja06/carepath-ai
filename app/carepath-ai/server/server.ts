@@ -1,15 +1,32 @@
-import { createApp, analytics, serving, lakebase, server } from '@databricks/appkit';
+import { createApp, analytics, serving, server } from '@databricks/appkit';
 // The agents plugin is beta and ships from the /beta entry point.
 import { agents } from '@databricks/appkit/beta';
+import pg from 'pg';
 import { initPlannerSchema, registerPlannerRoutes } from './routes/planner';
+
+// Lakebase (Postgres) — persists Planner Workspace state (shortlists, notes,
+// overrides). The installed CLI binds classic Lakebase instances, which the
+// AppKit lakebase plugin (built for Lakebase Autoscaling) doesn't support, so we
+// connect with native Postgres password auth via a plain pg.Pool. Credentials
+// come from PG* env (see app.yaml). When PGHOST is absent the app still runs
+// fully — only "Save to shortlist" persistence is unavailable.
+const lakebaseEnabled = Boolean(process.env.PGHOST);
+
+const pool = lakebaseEnabled
+  ? new pg.Pool({
+      host: process.env.PGHOST,
+      port: Number(process.env.PGPORT ?? 5432),
+      database: process.env.PGDATABASE ?? 'databricks_postgres',
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      ssl: { rejectUnauthorized: false },
+    })
+  : null;
 
 await createApp({
   plugins: [
     analytics(),
     serving(),
-    // Lakebase (Postgres) — persists Planner Workspace state (shortlists,
-    // notes, overrides). Exposed at runtime as appkit.lakebase.
-    lakebase(),
     // Agent Bricks — referral copilot. Loads config/agents/referral/agent.md,
     // which scopes the analytics plugin's read-only SQL tool. Requires a
     // streaming-capable serving endpoint (the llama Foundation Model API is).
@@ -19,9 +36,21 @@ await createApp({
   // Create the schema on startup (idempotent) and mount the Planner Workspace
   // CRUD routes on the Express app before it starts listening.
   async onPluginsReady(appkit) {
-    await initPlannerSchema(appkit.lakebase);
-    appkit.server.extend((app) => {
-      registerPlannerRoutes(app, appkit.lakebase);
-    });
+    if (!pool) {
+      console.warn(
+        '[carepath-ai] Lakebase not configured (no PGHOST) — ' +
+          'shortlist persistence disabled; all other features active.',
+      );
+      return;
+    }
+    try {
+      await initPlannerSchema(pool);
+      appkit.server.extend((app) => {
+        registerPlannerRoutes(app, pool);
+      });
+      console.log('[carepath-ai] Lakebase (native pg) connected — shortlist persistence active.');
+    } catch (err) {
+      console.error('[carepath-ai] Lakebase init failed — shortlist disabled:', err);
+    }
   },
 }).catch(console.error);

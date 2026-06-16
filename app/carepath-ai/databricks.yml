@@ -14,7 +14,6 @@ resources:
       user_api_scopes:
         - sql
         - serving.serving-endpoints
-        - database.database
 
       # The resources which this app has access to.
       resources:
@@ -26,18 +25,33 @@ resources:
           serving_endpoint:
             name: databricks-meta-llama-3-3-70b-instruct
             permission: CAN_QUERY
+        # Lakebase Postgres password — stored in a Databricks secret scope, not
+        # in source. app.yaml exposes it to the app as PGPASSWORD via valueFrom.
+        # Create/rotate with:
+        #   databricks secrets create-scope carepath-ai
+        #   databricks secrets put-secret carepath-ai pg-password
+        - name: pg-password
+          secret:
+            scope: carepath-ai
+            key: pg-password
+            permission: READ
         # Lakebase (Postgres) for Planner Workspace persistence: shortlists,
         # notes, and manual rank overrides. Fill in the project/branch/database
         # resource names from:
         #   databricks postgres list-projects
         #   databricks postgres list-branches  {project-name}
         #   databricks postgres list-databases {branch-name}
-        - name: postgres
-          database:
-            # project:  projects/{project-id}
-            # branch:   projects/{project-id}/branches/{branch-id}
-            # database: projects/{project-id}/branches/{branch-id}/databases/{database-id}
-            permission: CAN_CONNECT_AND_CREATE
+        # Lakebase Postgres — wired in a follow-up step. The installed CLI (v1.3.0)
+        # only binds classic instances (instance_name/database_name); the existing
+        # provisioned Lakebase here is Autoscaling (project/branch/database). Until
+        # reconciled, the app connects to Postgres directly (see app.yaml PG* env)
+        # and server.ts treats Lakebase as optional.
+        # - name: postgres
+        #   database:
+        #     project: projects/carepath-ai
+        #     branch: projects/carepath-ai/branches/production
+        #     database: projects/carepath-ai/branches/production/databases/databricks-postgres
+        #     permission: CAN_CONNECT_AND_CREATE
 
 targets:
   default:

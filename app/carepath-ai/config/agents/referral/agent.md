@@ -4,10 +4,11 @@
 # analytics plugin's read-only SQL tool (`analytics.query`), calling the SQL
 # functions already defined in sql/03_referral_engine.sql.
 #
-# `endpoint` falls back to DATABRICKS_SERVING_ENDPOINT_NAME when omitted; the
-# llama Foundation Model API endpoint is streaming-capable, which the agents
-# plugin requires.
-endpoint: databricks-meta-llama-3-3-70b-instruct
+# `endpoint` falls back to DATABRICKS_SERVING_ENDPOINT_NAME when omitted. We pin
+# qwen3-next-80b: it's streaming-capable AND emits structured tool calls the
+# agents adapter can parse. (llama-3.3/llama-4 leak tool calls as raw text;
+# claude-opus-4-8 / gemini are rate-limited to 0 on this workspace.)
+endpoint: databricks-qwen3-next-80b-a3b-instruct
 default: true
 tools:
   - plugin:analytics   # exposes analytics.query — OBO, read-only SQL only
