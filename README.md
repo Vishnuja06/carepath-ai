@@ -90,8 +90,13 @@ catalog is read-only).
   strictly in the stored facility record, with an AI-generated disclaimer.
 - ✅ **Phase 3a — App:** Databricks App (AppKit) with need input → ranked cards
   (fit + trust + distance) → facility detail (trust breakdown, evidence, NFHS context).
-- ⬜ **Phase 3b — Planner Workspace persistence:** shortlists/notes/overrides
-  (Lakebase). Deferred.
+- ✅ **Phase 3b — Planner Workspace persistence:** shortlists/notes/overrides
+  on **Lakebase** (Postgres). `config/migrations/001_planner.sql` +
+  `server/routes/planner.ts` + a "Save to shortlist" action per facility.
+- 🚧 **Phase 4 — Agentic referral (Agent Bricks):** a referral copilot that maps
+  a free-text patient need → specialty, calls `recommend_by_pincode` as a tool,
+  and returns grounded, cited recommendations. Config in
+  `app/carepath-ai/config/agents/referral.md` (wiring in progress).
 
 ## Project layout
 
@@ -129,6 +134,8 @@ Live app: https://carepath-ai-7474660235866912.aws.databricksapps.com
 
 - Databricks (Unity Catalog, Delta, SQL Warehouse)
 - Databricks Apps (AppKit — React/TypeScript)
+- Lakebase (Postgres) — Planner Workspace persistence
+- Agent Bricks — agentic referral copilot (Phase 4)
 - Databricks Foundation Model APIs (`databricks-meta-llama-3-3-70b-instruct`; swappable)
 - TypeScript / SQL
 

@@ -4,3 +4,7 @@ env:
     valueFrom: sql-warehouse
   - name: DATABRICKS_SERVING_ENDPOINT_NAME
     valueFrom: serving-endpoint
+  # Lakebase endpoint, auto-injected at runtime. PGHOST/PGPORT/PGDATABASE/
+  # PGSSLMODE are injected by the platform; see appkit.plugins.json lakebase.
+  - name: LAKEBASE_ENDPOINT
+    valueFrom: postgres

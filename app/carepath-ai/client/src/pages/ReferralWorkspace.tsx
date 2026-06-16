@@ -25,9 +25,10 @@ import {
   SelectValue,
 } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
-import { MapPin, ShieldCheck, Search } from 'lucide-react';
+import { MapPin, ShieldCheck, Search, Bookmark, BookmarkCheck } from 'lucide-react';
 import { fmtScore, fmtKm, fmtNum } from '../lib/format';
 import { tierClasses, flagLabel, parseFlags } from '../lib/trust';
+import { useShortlist } from '../lib/shortlist';
 import { FacilityDetailSheet } from '../components/FacilityDetailSheet';
 
 type SearchParams = {
@@ -178,6 +179,7 @@ function TrustOverviewStrip() {
 function Results({ params }: { params: SearchParams }) {
   const [selected, setSelected] = useState<{ id: string; district: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const shortlist = useShortlist();
 
   const pinQ = useAnalyticsQuery('pincode_info', { pincode: sql.bigint(params.pincode) });
   const { data, loading, error } = useAnalyticsQuery('recommend', {
@@ -209,6 +211,13 @@ function Results({ params }: { params: SearchParams }) {
           (0–100). <span className="font-medium">Trust</span> scores how complete, corroborated,
           consistent and fresh the facility's record is — not its clinical quality.
         </p>
+        {shortlist.entries.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            <BookmarkCheck className="inline h-3.5 w-3.5 mr-1" />
+            {shortlist.entries.length} facilit{shortlist.entries.length === 1 ? 'y' : 'ies'} saved to
+            your shortlist (persisted)
+          </p>
+        )}
       </div>
 
       {pinNotFound && (
@@ -251,7 +260,25 @@ function Results({ params }: { params: SearchParams }) {
       {!loading && !error && data && data.length > 0 && (
         <div className="space-y-3">
           {data.map((f, idx) => (
-            <FacilityCard key={f.facility_id} rank={idx + 1} f={f} onOpen={openDetail} />
+            <FacilityCard
+              key={f.facility_id}
+              rank={idx + 1}
+              f={f}
+              onOpen={openDetail}
+              saved={shortlist.savedIds.has(f.facility_id)}
+              onToggleSave={() => {
+                const existing = shortlist.entries.find((e) => e.facility_id === f.facility_id);
+                if (existing) {
+                  void shortlist.remove(existing.id);
+                } else {
+                  void shortlist.save({
+                    facility_id: f.facility_id,
+                    specialty: params.specialty,
+                    pincode: params.pincode,
+                  });
+                }
+              }}
+            />
           ))}
         </div>
       )}
@@ -288,10 +315,14 @@ function FacilityCard({
   rank,
   f,
   onOpen,
+  saved,
+  onToggleSave,
 }: {
   rank: number;
   f: RecommendRow;
   onOpen: (id: string, district: string) => void;
+  saved: boolean;
+  onToggleSave: () => void;
 }) {
   const flags = parseFlags(f.trust_flags);
   return (
@@ -342,9 +373,25 @@ function FacilityCard({
               </div>
             )}
 
-            <div className="mt-3">
+            <div className="mt-3 flex gap-2">
               <Button variant="outline" size="sm" onClick={() => onOpen(f.facility_id, f.district)}>
                 View trust &amp; evidence
+              </Button>
+              <Button
+                variant={saved ? 'secondary' : 'outline'}
+                size="sm"
+                onClick={onToggleSave}
+                aria-pressed={saved}
+              >
+                {saved ? (
+                  <>
+                    <BookmarkCheck className="h-4 w-4" /> Saved
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="h-4 w-4" /> Save to shortlist
+                  </>
+                )}
               </Button>
             </div>
           </div>

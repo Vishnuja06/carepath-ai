@@ -14,6 +14,7 @@ resources:
       user_api_scopes:
         - sql
         - serving.serving-endpoints
+        - database.database
 
       # The resources which this app has access to.
       resources:
@@ -25,6 +26,18 @@ resources:
           serving_endpoint:
             name: databricks-meta-llama-3-3-70b-instruct
             permission: CAN_QUERY
+        # Lakebase (Postgres) for Planner Workspace persistence: shortlists,
+        # notes, and manual rank overrides. Fill in the project/branch/database
+        # resource names from:
+        #   databricks postgres list-projects
+        #   databricks postgres list-branches  {project-name}
+        #   databricks postgres list-databases {branch-name}
+        - name: postgres
+          database:
+            # project:  projects/{project-id}
+            # branch:   projects/{project-id}/branches/{branch-id}
+            # database: projects/{project-id}/branches/{branch-id}/databases/{database-id}
+            permission: CAN_CONNECT_AND_CREATE
 
 targets:
   default:
