@@ -91,12 +91,13 @@ catalog is read-only).
 - ✅ **Phase 3a — App:** Databricks App (AppKit) with need input → ranked cards
   (fit + trust + distance) → facility detail (trust breakdown, evidence, NFHS context).
 - ✅ **Phase 3b — Planner Workspace persistence:** shortlists/notes/overrides
-  on **Lakebase** (Postgres). `config/migrations/001_planner.sql` +
-  `server/routes/planner.ts` + a "Save to shortlist" action per facility.
+  on **Lakebase** (Postgres). Schema created on startup + CRUD in
+  `server/routes/planner.ts`, with a "Save to shortlist" action per facility.
 - 🚧 **Phase 4 — Agentic referral (Agent Bricks):** a referral copilot that maps
-  a free-text patient need → specialty, calls `recommend_by_pincode` as a tool,
-  and returns grounded, cited recommendations. Config in
-  `app/carepath-ai/config/agents/referral.md` (wiring in progress).
+  a free-text patient need → specialty, calls `recommend_by_pincode` via the
+  analytics read-only SQL tool, and returns grounded, cited recommendations.
+  Config in `app/carepath-ai/config/agents/referral/agent.md`. The HTTP surface
+  is live (`POST /chat`); a chat UI panel is the remaining wiring.
 
 ## Project layout
 
