@@ -23,13 +23,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
 } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
-import { MapPin, ShieldCheck, Search, Bookmark, BookmarkCheck } from 'lucide-react';
+import { MapPin, ShieldCheck, Search, Bookmark, BookmarkCheck, Sparkles } from 'lucide-react';
 import { fmtScore, fmtKm, fmtNum } from '../lib/format';
 import { tierClasses, flagLabel, parseFlags } from '../lib/trust';
 import { useShortlist } from '../lib/shortlist';
 import { FacilityDetailSheet } from '../components/FacilityDetailSheet';
+import { AgentCopilot } from '../components/AgentCopilot';
 
 type SearchParams = {
   specialty: string;
@@ -59,6 +64,21 @@ export function ReferralWorkspace() {
     <div className="max-w-6xl mx-auto space-y-6">
       <TrustOverviewStrip />
 
+      <Tabs defaultValue="search">
+        <TabsList>
+          <TabsTrigger value="search">
+            <Search className="h-4 w-4" /> Guided search
+          </TabsTrigger>
+          <TabsTrigger value="copilot">
+            <Sparkles className="h-4 w-4" /> AI copilot
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="copilot" className="mt-4">
+          <AgentCopilot />
+        </TabsContent>
+
+        <TabsContent value="search" className="mt-4">
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
         {/* Patient-need form */}
         <Card className="shadow-sm lg:sticky lg:top-6">
@@ -153,6 +173,8 @@ export function ReferralWorkspace() {
           )}
         </div>
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
